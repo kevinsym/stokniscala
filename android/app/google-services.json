@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "407879300327",
+    "project_id": "stockniscala",
+    "storage_bucket": "stockniscala.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407879300327:android:8b8d78dc29b708b72f9e42",
+        "android_client_info": {
+          "package_name": "com.example.stockniscala"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407879300327-bdmk7r93i068r76bv3ljumnkhm3fth8s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAA2B9ZHQ2l9w5POtGlTfyRQsSVOPFn3hM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407879300327-bdmk7r93i068r76bv3ljumnkhm3fth8s.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "407879300327-h46dcknt9u13fj4o44vi9kngel0h597t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "aa"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
