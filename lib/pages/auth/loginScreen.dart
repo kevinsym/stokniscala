@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stockniscala/pages/HomeScreen.dart';
 import 'package:stockniscala/reusable_widgets/reusable_widget.dart';
 import 'package:stockniscala/pages/auth/signUpScreen.dart';
+import 'package:stockniscala/pages/auth/resetPassword.dart';
 import 'package:stockniscala/utils/color_utils.dart';
 
 class loginScreen extends StatefulWidget {
@@ -15,6 +16,16 @@ class loginScreen extends StatefulWidget {
 class _loginScreenState extends State<loginScreen> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
+  TextEditingController _errorTextController = TextEditingController();
+
+  @override
+  void dispose() {
+    _passwordTextController.dispose();
+    _emailTextController.dispose();
+    _errorTextController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,45 +33,73 @@ class _loginScreenState extends State<loginScreen> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [
-              hexStringToColor("CB2B93"),
-              hexStringToColor("9546C4"),
-              hexStringToColor("5E61F4")
-            ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+          gradient: LinearGradient(
+            colors: [
+              hexStringToColor("834200"),
+              hexStringToColor("A4550A"),
+              hexStringToColor("B5651D")
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                20, MediaQuery.of(context).size.height * 0.2, 20, 0),
+              20,
+              MediaQuery.of(context).size.height * 0.2,
+              20,
+              0,
+            ),
             child: Column(
               children: <Widget>[
-                logoWidget("assets/images/logo1.png"),
-                const SizedBox(
-                  height: 30,
+                logoWidget("assets/logo_niscala.png"),
+                const SizedBox(height: 30),
+                reusableTextField(
+                  "Masukkan Email",
+                  Icons.person_outline,
+                  false,
+                  _emailTextController,
                 ),
-                reusableTextField("Enter UserName", Icons.person_outline, false,
-                    _emailTextController),
-                const SizedBox(
-                  height: 20,
+                const SizedBox(height: 20),
+                reusableTextField(
+                  "Masukkan Password",
+                  Icons.lock_outline,
+                  true,
+                  _passwordTextController,
+                  errorTextController: _errorTextController,
                 ),
-                reusableTextField("Enter Password", Icons.lock_outline, true,
-                    _passwordTextController),
-                const SizedBox(
-                  height: 5,
-                ),
+                const SizedBox(height: 5),
                 forgetPassword(context),
-                firebaseUIButton(context, "Sign In", () {
-                  FirebaseAuth.instance
-                      .signInWithEmailAndPassword(
-                      email: _emailTextController.text,
-                      password: _passwordTextController.text)
-                      .then((value) {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()));
-                  }).onError((error, stackTrace) {
-                    print("Error ${error.toString()}");
-                  });
-                }),
-                signUpOption()
+                firebaseUIButton(
+                  context,
+                  "Sign In",
+                      () {
+                    String email = _emailTextController.text.trim();
+                    String password = _passwordTextController.text;
+
+                    if (email.isEmpty || password.isEmpty) {
+                      _errorTextController.text = 'Please enter email and password.';
+                      return;
+                    }
+
+                    FirebaseAuth.instance
+                        .signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    )
+                        .then((value) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                      );
+                    })
+                        .catchError((error) {
+                      _errorTextController.text = 'Invalid email or password.';
+                    });
+                  },
+                ),
+                signUpOption(),
               ],
             ),
           ),
@@ -73,18 +112,22 @@ class _loginScreenState extends State<loginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("Don't have account?",
-            style: TextStyle(color: Colors.white70)),
+        const Text(
+          "Don't have an account?",
+          style: TextStyle(color: Colors.white70),
+        ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => signUpScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => signUpScreen()),
+            );
           },
           child: const Text(
             " Sign Up",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-        )
+        ),
       ],
     );
   }
@@ -101,9 +144,10 @@ class _loginScreenState extends State<loginScreen> {
           textAlign: TextAlign.right,
         ),
         onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => signUpScreen())),
+          context,
+          MaterialPageRoute(builder: (context) => ResetPassword()),
+        ),
       ),
     );
   }
 }
-

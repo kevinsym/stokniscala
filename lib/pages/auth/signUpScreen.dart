@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stockniscala/reusable_widgets/reusable_widget.dart';
 import 'package:stockniscala/pages/auth/loginScreen.dart';
+import 'package:stockniscala/utils/color_utils.dart';
+import 'package:stockniscala/pages/HomeScreen.dart';
 
 class signUpScreen extends StatefulWidget {
   const signUpScreen({Key? key}) : super(key: key);
@@ -15,134 +17,72 @@ class _signUpScreenState extends State<signUpScreen> {
   //controller
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
-  TextEditingController _userNameTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body : Container(
-        child: Column(
-          children: [
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          "Sign Up",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Container(
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
+          height: MediaQuery
+              .of(context)
+              .size
+              .height,
+          decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [
+                hexStringToColor("834200"),
+                hexStringToColor("A4550A"),
+                hexStringToColor("B5651D")
+              ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+          child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 120, 20, 0),
+                child: Column(
+                  children: <Widget>[
 
-            //Username
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 20, right: 20, bottom: 20, top: 20),
-              child: TextFormField(
-                controller: _userNameTextController,
-
-                decoration: const InputDecoration(
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius:
-                      BorderRadius.all(Radius.circular(10))),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius:
-                      BorderRadius.all(Radius.circular(10))),
-                  prefixIcon: Icon(
-                    Icons.person,
-                    color: Colors.purple,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  labelText: "Username",
-                  hintText: 'username anda',
-                  labelStyle: TextStyle(color: Colors.purple),
-                  // suffixIcon: IconButton(
-                  //     onPressed: () {},
-                  //     icon: Icon(Icons.close,
-                  //         color: Colors.purple))
-                ),
-              ),
-            ),
-
-            //email
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 20, right: 20, bottom: 20, top: 20),
-              child: TextFormField(
-                controller: _emailTextController,
-
-                decoration: const InputDecoration(
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius:
-                      BorderRadius.all(Radius.circular(10))),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius:
-                      BorderRadius.all(Radius.circular(10))),
-                  prefixIcon: Icon(
-                    Icons.person,
-                    color: Colors.purple,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  labelText: "Email",
-                  hintText: 'your-email@domain.com',
-                  labelStyle: TextStyle(color: Colors.purple),
-                  // suffixIcon: IconButton(
-                  //     onPressed: () {},
-                  //     icon: Icon(Icons.close,
-                  //         color: Colors.purple))
-                ),
-              ),
-            ),
-
-            //pasword
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-                child: TextFormField(
-                  controller: _passwordTextController,
-                  obscuringCharacter: '*',
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius:
-                        BorderRadius.all(Radius.circular(10))),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius:
-                        BorderRadius.all(Radius.circular(10))),
-                    prefixIcon: Icon(
-                      Icons.person,
-                      color: Colors.purple,
+                    const SizedBox(
+                      height: 20,
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    labelText: "Password",
-                    hintText: '*********',
-                    labelStyle: TextStyle(color: Colors.purple),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty && value!.length < 5) {
-                      return 'Enter a valid password';
-                      {
-                        return null;
-                      }
-                    }
-                  },
+                    reusableTextField(
+                        "Enter Email Id", Icons.person_outline, false,
+                        _emailTextController),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    reusableTextField(
+                        "Enter Password", Icons.lock_outlined, true,
+                        _passwordTextController),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    firebaseUIButton(context, "Sign Up", () {
+                      FirebaseAuth.instance
+                          .createUserWithEmailAndPassword(
+                          email: _emailTextController.text,
+                          password: _passwordTextController.text)
+                          .then((value) {
+                        print("Created New Account");
+                        Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (context) => loginScreen()));
+                      }).onError((error, stackTrace) {
+                        print("Error ${error.toString()}");
+                      });
+                    })
+                  ],
                 ),
-
-            ),
-            firebaseUIButton(context, "Sign Up", () {
-              FirebaseAuth.instance
-                  .createUserWithEmailAndPassword(
-                  email: _emailTextController.text,
-                  password: _passwordTextController.text)
-                  .then((value) {
-                print("Created New Account");
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => loginScreen()));
-              }).onError((error, stackTrace) {
-                print("Error ${error.toString()}");
-              });
-            })],
-        )
-
-      )
+              ))),
     );
   }
 }

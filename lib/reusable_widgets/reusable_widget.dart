@@ -10,8 +10,13 @@ Image logoWidget(String imageName) {
   );
 }
 
-TextField reusableTextField(String text, IconData icon, bool isPasswordType,
-    TextEditingController controller) {
+TextField reusableTextField(
+    String text,
+    IconData icon,
+    bool isPasswordType,
+    TextEditingController controller, {
+      TextEditingController? errorTextController,
+    }) {
   return TextField(
     controller: controller,
     obscureText: isPasswordType,
@@ -30,8 +35,10 @@ TextField reusableTextField(String text, IconData icon, bool isPasswordType,
       floatingLabelBehavior: FloatingLabelBehavior.never,
       fillColor: Colors.white.withOpacity(0.3),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30.0),
-          borderSide: const BorderSide(width: 0, style: BorderStyle.none)),
+        borderRadius: BorderRadius.circular(30.0),
+        borderSide: const BorderSide(width: 0, style: BorderStyle.none),
+      ),
+      errorText: errorTextController?.text,
     ),
     keyboardType: isPasswordType
         ? TextInputType.visiblePassword
@@ -52,17 +59,22 @@ Container firebaseUIButton(BuildContext context, String title, Function onTap) {
       child: Text(
         title,
         style: const TextStyle(
-            color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
       ),
       style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.pressed)) {
-              return Colors.black26;
-            }
-            return Colors.white;
-          }),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)))),
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.pressed)) {
+            return Colors.black26;
+          }
+          return Colors.white;
+        }),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+      ),
     ),
   );
 }

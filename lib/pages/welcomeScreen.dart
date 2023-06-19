@@ -23,15 +23,11 @@ class _welcomeScreenState extends State<welcomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               SizedBox(height: 20,),
-              Image.network(
-                'https://i.ibb.co/3MLGsSx/logo-new.png',
-                height: 80,
-                width: 120,
+              Image.asset(
+                "assets/logo_niscala.png",
+                height: 300,
+                width: 600,
               ),
-              Lottie.network(
-                  'https://assets1.lottiefiles.com/packages/lf20_1pxqjqps.json',
-                  height: 300,
-                  width: 600),
               Text(
                 'Selamat Datang',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
@@ -54,7 +50,7 @@ class _welcomeScreenState extends State<welcomeScreen> {
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0)),
-                      backgroundColor: Colors.purple,
+                      backgroundColor: Colors.brown,
                       padding: EdgeInsets.symmetric(
                           horizontal: MediaQuery.of(context).size.width / 3.3,
                           vertical: 20)
@@ -90,7 +86,7 @@ class _welcomeScreenState extends State<welcomeScreen> {
                     child: Text(
                       'Sign Up',
                       style: TextStyle(
-                          color: Colors.purple, fontWeight: FontWeight.w500),
+                          color: Colors.brown, fontWeight: FontWeight.w500),
                     ),
                   )
                 ],
