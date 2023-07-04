@@ -14,8 +14,8 @@ class _SalesPageState extends State<SalesPage> {
   Future<void> _saveSale() async {
     if (selectedMenu != null && quantity != null && quantity! > 0) {
       try {
-        final CollectionReference salesRef = FirebaseFirestore.instance.collection(
-            'sales_${DateTime.now().toString().split(' ')[0]}');
+        final CollectionReference salesRef =
+        FirebaseFirestore.instance.collection('sales_${DateTime.now().toString().split(' ')[0]}');
 
         await salesRef.add({
           'menu': selectedMenu,
@@ -24,10 +24,7 @@ class _SalesPageState extends State<SalesPage> {
         });
 
         final CollectionReference menusRef = FirebaseFirestore.instance.collection('menus');
-        final QuerySnapshot snapshot = await menusRef
-            .where('name', isEqualTo: selectedMenu)
-            .limit(1)
-            .get();
+        final QuerySnapshot snapshot = await menusRef.where('name', isEqualTo: selectedMenu).limit(1).get();
 
         if (snapshot.docs.isNotEmpty) {
           final DocumentSnapshot menuDoc = snapshot.docs.first;
@@ -36,25 +33,34 @@ class _SalesPageState extends State<SalesPage> {
           final List<dynamic> ingredients = (menuDoc.data() as Map<String, dynamic>)['ingredients'];
 
           for (int i = 0; i < ingredients.length; i++) {
-            final Map<String, dynamic> ingredient = ingredients[i];
-            final String ingredientName = ingredient['ingredientName'];
-            final int ingredientQuantity = ingredient['quantity'];
+            final Map<String, dynamic>? ingredient = ingredients[i] as Map<String, dynamic>?;
 
-            final CollectionReference ingredientsRef = FirebaseFirestore.instance.collection('ingredients');
-            final QuerySnapshot ingredientSnapshot = await ingredientsRef
-                .where('name', isEqualTo: ingredientName)
-                .limit(1)
-                .get();
+            if (ingredient != null) {
+              final String ingredientName = ingredient['ingredientName'];
+              final int ingredientQuantity = ingredient['quantity'];
 
-            if (ingredientSnapshot.docs.isNotEmpty) {
-              final DocumentSnapshot ingredientDoc = ingredientSnapshot.docs.first;
-              final String ingredientDocId = ingredientDoc.id;
+              final CollectionReference ingredientsRef =
+              FirebaseFirestore.instance.collection('ingredient');
+              final QuerySnapshot ingredientSnapshot =
+              await ingredientsRef.where('name', isEqualTo: ingredientName).limit(1).get();
 
-              final int previousQuantity = (ingredientDoc.data() as Map<String, dynamic>)['quantity'];
+              if (ingredientSnapshot.docs.isNotEmpty) {
+                final DocumentSnapshot ingredientDoc = ingredientSnapshot.docs.first;
+                final String ingredientDocId = ingredientDoc.id;
 
-              await ingredientsRef.doc(ingredientDocId).update({
-                'quantity': previousQuantity - (ingredientQuantity * quantity!),
-              });
+                final int previousQuantity = (ingredientDoc.data() as Map<String, dynamic>)['quantity'];
+
+                final int newQuantity = previousQuantity - (ingredientQuantity * quantity!);
+
+                print('newQuantity: $newQuantity');
+                print('previousQuantity: $previousQuantity');
+                print('ingredientQuantity: $ingredientQuantity');
+                print('quantity: ${quantity!}');
+
+                await ingredientsRef.doc(ingredientDocId).update({
+                  'quantity': newQuantity,
+                });
+              }
             }
           }
         }
@@ -67,11 +73,26 @@ class _SalesPageState extends State<SalesPage> {
           SnackBar(content: Text('Sale added successfully!')),
         );
       } catch (error) {
+        print('Error: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to add sale. Please try again.')),
         );
       }
     }
+  }
+
+  Future<int> _getTotalSoldQuantity(String selectedMenu) async {
+    final CollectionReference salesRef =
+    FirebaseFirestore.instance.collection('sales_${DateTime.now().toString().split(' ')[0]}');
+
+    int totalSoldQuantity = 0;
+    final QuerySnapshot salesSnapshot = await salesRef.where('menu', isEqualTo: selectedMenu).get();
+    for (final DocumentSnapshot saleDoc in salesSnapshot.docs) {
+      final saleData = saleDoc.data() as Map<String, dynamic>;
+      final int saleQuantity = saleData['quantity'];
+      totalSoldQuantity += saleQuantity;
+    }
+    return totalSoldQuantity;
   }
 
   @override
@@ -90,6 +111,7 @@ class _SalesPageState extends State<SalesPage> {
               'Select Menu:',
               style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 8.0),
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('menus').snapshots(),
               builder: (context, snapshot) {
@@ -125,11 +147,13 @@ class _SalesPageState extends State<SalesPage> {
               'Enter Quantity:',
               style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 8.0),
             TextField(
               controller: _quantityController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Quantity',
+                border: OutlineInputBorder(),
               ),
               onChanged: (value) {
                 setState(() {
@@ -141,6 +165,9 @@ class _SalesPageState extends State<SalesPage> {
             ElevatedButton(
               onPressed: _saveSale,
               child: Text('Add Sale'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+              ),
             ),
           ],
         ),

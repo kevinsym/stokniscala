@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stockniscala/pages/menu/AddNewStock.dart';
+import 'package:stockniscala/pages/menu/InputStockResult.dart';
 
 class Ingredient {
   final String name;
 
   Ingredient({required this.name});
+}
+
+class SelectedIngredient {
+  final String name;
+  final int quantity;
+
+  SelectedIngredient({required this.name, required this.quantity});
 }
 
 class InputStockPage extends StatefulWidget {
@@ -18,6 +26,8 @@ class _InputStockPageState extends State<InputStockPage> {
   String? selectedStock;
   int? quantity;
   List<Ingredient> ingredientList = [];
+  Map<String, int> ingredientQuantities = {};
+  List<SelectedIngredient> selectedIngredients = [];
 
   Future<void> _saveStock() async {
     if (selectedStock != null && quantity != null && quantity! > 0) {
@@ -33,28 +43,36 @@ class _InputStockPageState extends State<InputStockPage> {
         if (snapshot.docs.isNotEmpty) {
           final DocumentSnapshot doc = snapshot.docs.first;
           final String docId = doc.id;
-          final int previousQuantity = (doc.data() as Map<String, dynamic>)['quantity'] as int? ?? 0;
+          final int previousQuantity =
+              (doc.data() as Map<String, dynamic>)['quantity'] as int? ?? 0;
 
           await ingredientsRef.doc(docId).update({
             'quantity': previousQuantity + (quantity ?? 0),
           });
+
+          ingredientQuantities[selectedStock!] =
+              previousQuantity + (quantity ?? 0);
         } else {
           await ingredientsRef.add({
             'name': selectedStock,
             'quantity': quantity,
           });
+
+          ingredientQuantities[selectedStock!] = quantity!;
         }
 
-        _quantityController.clear();
         setState(() {
-          quantity = null;
+          selectedStock = null;
+          _quantityController.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Stock saved successfully!')),
         );
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save stock. Please try again.')),
+          SnackBar(
+            content: Text('Failed to save stock. Please try again.'),
+          ),
         );
       }
     }
@@ -69,9 +87,13 @@ class _InputStockPageState extends State<InputStockPage> {
 
       final List<Ingredient> ingredients = snapshot.docs
           .map((doc) {
-        final data = doc.data() as Map<String, dynamic>; // Ubah tipe data menjadi Map<String, dynamic>
-        final name = data['name'] as String?; // Gunakan operator [] pada objek data
-        return Ingredient(name: name ?? ''); // Jika null, set nilai default ''
+        final data = doc.data() as Map<String, dynamic>;
+        final name = data['name'] as String?;
+        final quantity = data['quantity'] as int?;
+        if (name != null && quantity != null) {
+          ingredientQuantities[name] = quantity;
+        }
+        return Ingredient(name: name ?? '');
       })
           .toList();
 
@@ -80,9 +102,104 @@ class _InputStockPageState extends State<InputStockPage> {
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch ingredients. Please try again.')),
+        SnackBar(
+          content: Text('Failed to fetch ingredients. Please try again.'),
+        ),
       );
     }
+  }
+
+  void _removeSelectedIngredient(int index) {
+    setState(() {
+      final SelectedIngredient removedIngredient =
+      selectedIngredients.removeAt(index);
+      // Kurangi stok pada koleksi berdasarkan quantity yang dihapus
+      if (ingredientQuantities.containsKey(removedIngredient.name)) {
+        ingredientQuantities[removedIngredient.name] =
+            ingredientQuantities[removedIngredient.name]! -
+                removedIngredient.quantity;
+
+        final CollectionReference ingredientsRef =
+        FirebaseFirestore.instance.collection('ingredient');
+
+        ingredientsRef
+            .where('name', isEqualTo: removedIngredient.name)
+            .limit(1)
+            .get()
+            .then((snapshot) {
+          if (snapshot.docs.isNotEmpty) {
+            final DocumentSnapshot doc = snapshot.docs.first;
+            final String docId = doc.id;
+            final int previousQuantity =
+                (doc.data() as Map<String, dynamic>)['quantity'] as int? ?? 0;
+
+            ingredientsRef.doc(docId).update({
+              'quantity': previousQuantity - removedIngredient.quantity,
+            }).then((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Selected ingredient removed successfully!'),
+                ),
+              );
+            }).catchError((error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'Failed to remove selected ingredient. Please try again.'),
+                ),
+              );
+            });
+          }
+        }).catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to remove selected ingredient. Please try again.'),
+            ),
+          );
+        });
+      }
+    });
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation'),
+          content: Text('Are you sure you want to finish?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _finishInputStock();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _finishInputStock() {
+    // Process the selected ingredients and do any necessary tasks
+    // when the input stock is finished
+
+    // Clear the selected ingredients list and ingredient quantities
+    selectedIngredients.clear();
+    ingredientQuantities.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Input stock finished!')),
+    );
   }
 
   @override
@@ -107,6 +224,7 @@ class _InputStockPageState extends State<InputStockPage> {
               value: selectedStock,
               decoration: InputDecoration(
                 labelText: 'Select Stock',
+                border: OutlineInputBorder(),
               ),
               onChanged: (value) {
                 setState(() {
@@ -121,12 +239,13 @@ class _InputStockPageState extends State<InputStockPage> {
               }).toList(),
             ),
             SizedBox(height: 16.0),
-            TextField(
+            TextFormField(
               controller: _quantityController,
-              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Quantity',
+                border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
               onChanged: (value) {
                 quantity = int.tryParse(value);
               },
@@ -143,23 +262,87 @@ class _InputStockPageState extends State<InputStockPage> {
                     });
                   },
                   child: Text('Cancel'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.red,
+                    textStyle: TextStyle(color: Colors.white),
+                  ),
                 ),
                 ElevatedButton(
-                  onPressed: _saveStock,
+                  onPressed: () {
+                    setState(() {
+                      if (selectedStock != null && quantity != null) {
+                        final selectedIngredient = SelectedIngredient(
+                          name: selectedStock!,
+                          quantity: quantity!,
+                        );
+                        selectedIngredients.add(selectedIngredient);
+                      }
+                      _saveStock();
+                    });
+                  },
                   child: Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                    textStyle: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                // Navigasi ke halaman tambah bahan baku baru
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => AddNewStockPage()),
                 );
               },
-              child: Text('Add New Ingredient'),
+              child: Text('Add New Stock'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.blue,
+                textStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Selected Ingredients:',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8.0),
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: selectedIngredients.length,
+              itemBuilder: (context, index) {
+                final selectedIngredient = selectedIngredients[index];
+                return ListTile(
+                  title: Text(selectedIngredient.name),
+                  subtitle: Text('Quantity: ${selectedIngredient.quantity}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      _removeSelectedIngredient(index);
+                    },
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: selectedIngredients.isEmpty ? null : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InputStockResultPage(selectedIngredients: selectedIngredients),
+                  ),
+                );
+              },
+              child: Text('Selesai'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.orange,
+                textStyle: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

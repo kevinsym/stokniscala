@@ -16,13 +16,12 @@ class loginScreen extends StatefulWidget {
 class _loginScreenState extends State<loginScreen> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
-  TextEditingController _errorTextController = TextEditingController();
+  String _errorText = '';
 
   @override
   void dispose() {
     _passwordTextController.dispose();
     _emailTextController.dispose();
-    _errorTextController.dispose();
     super.dispose();
   }
 
@@ -67,8 +66,16 @@ class _loginScreenState extends State<loginScreen> {
                   Icons.lock_outline,
                   true,
                   _passwordTextController,
-                  errorTextController: _errorTextController,
+                  errorText: _errorText,
                 ),
+                if (_errorText.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _errorText,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 const SizedBox(height: 5),
                 forgetPassword(context),
                 firebaseUIButton(
@@ -79,7 +86,9 @@ class _loginScreenState extends State<loginScreen> {
                     String password = _passwordTextController.text;
 
                     if (email.isEmpty || password.isEmpty) {
-                      _errorTextController.text = 'Please enter email and password.';
+                      setState(() {
+                        _errorText = 'Please enter email and password.';
+                      });
                       return;
                     }
 
@@ -95,7 +104,9 @@ class _loginScreenState extends State<loginScreen> {
                       );
                     })
                         .catchError((error) {
-                      _errorTextController.text = 'Invalid email or password.';
+                      setState(() {
+                        _errorText = 'Invalid email or password.';
+                      });
                     });
                   },
                 ),

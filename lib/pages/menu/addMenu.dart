@@ -9,7 +9,7 @@ class AddMenuPage extends StatefulWidget {
 }
 
 class _AddMenuPageState extends State<AddMenuPage> {
-  String? _selectedIngredient;
+  late String _selectedIngredient;
   List<String> _ingredients = [];
   List<Map<String, dynamic>> _selectedIngredients = [];
   TextEditingController _nameController = TextEditingController();
@@ -19,13 +19,13 @@ class _AddMenuPageState extends State<AddMenuPage> {
   @override
   void initState() {
     super.initState();
+    _selectedIngredient = '';
     fetchIngredients();
   }
 
   Future<void> fetchIngredients() async {
-    final QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('ingredient')
-        .get();
+    final QuerySnapshot snapshot =
+    await FirebaseFirestore.instance.collection('ingredient').get();
 
     setState(() {
       _ingredients = snapshot.docs
@@ -35,7 +35,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
   }
 
   void _addIngredient() {
-    String name = _selectedIngredient ?? '';
+    String name = _selectedIngredient;
     String quantityString = _quantityController.text.trim();
     int quantity = int.tryParse(quantityString) ?? 0;
 
@@ -46,7 +46,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
       };
       setState(() {
         _selectedIngredients.add(ingredient);
-        _selectedIngredient = null;
+        _selectedIngredient = '';
         _quantityController.clear();
         _errorMessage = '';
       });
@@ -57,86 +57,118 @@ class _AddMenuPageState extends State<AddMenuPage> {
     }
   }
 
+  void _removeIngredient(int index) {
+    setState(() {
+      _selectedIngredients.removeAt(index);
+    });
+  }
+
   void _saveMenu() {
     String name = _nameController.text.trim();
 
-    FirebaseFirestore.instance.collection('menus').add({
-      'name': name,
-      'ingredients': _selectedIngredients,
-    }).then((value) {
-      // Penyimpanan berhasil
-      print('Menu berhasil disimpan!');
-      Navigator.pop(context); // Kembali ke halaman sebelumnya
-    }).catchError((error) {
-      // Penyimpanan gagal
-      print('Gagal menyimpan menu: $error');
-      // Tambahkan logika penanganan kesalahan sesuai kebutuhan
-    });
+    if (name.isNotEmpty && _selectedIngredients.isNotEmpty) {
+      FirebaseFirestore.instance.collection('menus').add({
+        'name': name,
+        'ingredients': _selectedIngredients,
+      }).then((value) {
+        // Penyimpanan berhasil
+        print('Menu berhasil disimpan!');
+        Navigator.pop(context); // Kembali ke halaman sebelumnya
+      }).catchError((error) {
+        // Penyimpanan gagal
+        print('Gagal menyimpan menu: $error');
+        // Tambahkan logika penanganan kesalahan sesuai kebutuhan
+      });
+    } else {
+      setState(() {
+        _errorMessage = 'Nama menu dan setidaknya satu bahan harus diisi.';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Menu"),
+        title: const Text("Add Menu"),
         backgroundColor: Colors.brown,
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Name",
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             DropdownButtonFormField<String>(
               value: _selectedIngredient,
               onChanged: (String? value) {
                 setState(() {
-                  _selectedIngredient = value;
+                  _selectedIngredient = value!;
                 });
               },
-              items: _ingredients.map((String ingredient) {
-                return DropdownMenuItem<String>(
-                  value: ingredient,
-                  child: Text(ingredient),
-                );
-              }).toList(),
-              decoration: InputDecoration(
+              items: [
+                ..._ingredients.map((String ingredient) {
+                  return DropdownMenuItem<String>(
+                    value: ingredient,
+                    child: Text(ingredient),
+                  );
+                }),
+                DropdownMenuItem<String>(
+                  value: '', // Nilai kosong
+                  child: const Text('None'),
+                ),
+              ],
+              decoration: const InputDecoration(
                 labelText: "Ingredient",
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: _quantityController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Quantity",
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _addIngredient,
-              child: Text("Tambah Ingredient"),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.brown, // Warna coklat
+              ),
+              child: const Text("Tambah Ingredient"),
             ),
             if (_errorMessage.isNotEmpty)
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   _errorMessage,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _saveMenu,
-              child: Text("Simpan"),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.brown, // Warna coklat
+              ),
+              child: const Text("Simpan"),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
+            const Text(
+              "Selected Ingredients:",
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8.0),
             Expanded(
               child: ListView.builder(
                 itemCount: _selectedIngredients.length,
@@ -147,6 +179,12 @@ class _AddMenuPageState extends State<AddMenuPage> {
 
                   return ListTile(
                     title: Text('$name - $quantity'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        _removeIngredient(index);
+                      },
+                    ),
                   );
                 },
               ),

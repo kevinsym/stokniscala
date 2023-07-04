@@ -15,7 +15,7 @@ TextField reusableTextField(
     IconData icon,
     bool isPasswordType,
     TextEditingController controller, {
-      TextEditingController? errorTextController,
+      String? errorText, // Mengubah parameter errorTextController menjadi errorText
     }) {
   return TextField(
     controller: controller,
@@ -38,12 +38,50 @@ TextField reusableTextField(
         borderRadius: BorderRadius.circular(30.0),
         borderSide: const BorderSide(width: 0, style: BorderStyle.none),
       ),
-      errorText: errorTextController?.text,
+      errorText: errorText, // Menggunakan parameter errorText
     ),
     keyboardType: isPasswordType
         ? TextInputType.visiblePassword
         : TextInputType.emailAddress,
   );
+}
+
+class ReusablePasswordField extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final TextEditingController controller;
+  final ValueChanged<String>? onChanged;
+
+  ReusablePasswordField({
+    required this.label,
+    required this.icon,
+    required this.controller,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: true,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          icon,
+          color: Colors.white70,
+        ),
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.9)),
+        filled: true,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+        fillColor: Colors.white.withOpacity(0.3),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(width: 0, style: BorderStyle.none),
+        ),
+      ),
+    );
+  }
 }
 
 Container firebaseUIButton(BuildContext context, String title, Function onTap) {

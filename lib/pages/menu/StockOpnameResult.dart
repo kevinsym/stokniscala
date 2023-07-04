@@ -26,8 +26,9 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        final stockOpnameData = snapshot.docs.first.data() as Map<String, dynamic>;
-        final List<dynamic>? data = stockOpnameData?['data'];
+        final stockOpnameData =
+        snapshot.docs.first.data() as Map<String, dynamic>;
+        final List<dynamic>? data = stockOpnameData['data'];
 
         if (data != null) {
           setState(() {
@@ -36,6 +37,8 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
                 itemId: item?['itemName'] ?? '',
                 oldQuantity: item?['oldQuantity'] ?? 0,
                 newQuantity: item?['newQuantity'] ?? 0,
+                hasDifference: item?['hasDifference'] ?? false,
+                description: item?['description'] ?? '',
               );
             }).toList();
 
@@ -60,7 +63,7 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
-            ); // Kembali ke halaman sebelumnya
+            );
           },
         ),
       ),
@@ -73,6 +76,7 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
               'Stock Opname Date: ${stockOpnameDate.day}-${stockOpnameDate.month}-${stockOpnameDate.year}',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
           ),
@@ -83,12 +87,49 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
                 final stockOpnameData = stockOpnameDataList[index];
 
                 return ListTile(
-                  title: Text('Item ID: ${stockOpnameData.itemId}'),
+                  title: Text(
+                    'Item ID: ${stockOpnameData.itemId}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Old Quantity: ${stockOpnameData.oldQuantity}'),
-                      Text('New Quantity: ${stockOpnameData.newQuantity}'),
+                      SizedBox(height: 4),
+                      Text(
+                        'Old Quantity: ${stockOpnameData.oldQuantity}',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'New Quantity: ${stockOpnameData.newQuantity}',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (stockOpnameData.hasDifference)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 4),
+                            Text(
+                              'Description: ${stockOpnameData.description}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: 8),
+                      Divider(
+                        color: Colors.grey,
+                        thickness: 1,
+                      ),
                     ],
                   ),
                 );
@@ -96,6 +137,19 @@ class _StockOpnameResultPageState extends State<StockOpnameResultPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        },
+        child: Icon(
+          Icons.home,
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.brown,
       ),
     );
   }
@@ -105,11 +159,15 @@ class StockOpnameData {
   final String itemId;
   final int oldQuantity;
   final int newQuantity;
+  final bool hasDifference;
+  final String description;
 
   StockOpnameData({
     required this.itemId,
     required this.oldQuantity,
     required this.newQuantity,
+    this.hasDifference = false,
+    this.description = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -117,12 +175,8 @@ class StockOpnameData {
       'itemId': itemId,
       'oldQuantity': oldQuantity,
       'newQuantity': newQuantity,
+      'hasDifference': hasDifference,
+      'description': description,
     };
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: StockOpnameResultPage(),
-  ));
 }

@@ -43,31 +43,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Column(
                 children: [
-                  Container(
+                  Image.asset(
+                    'assets/logo_niscala.png',
                     width: 80,
                     height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundImage: AssetImage('assets/profilepict.jpg'),
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    "Email: " + user.email!,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
                     ),
                   ),
-                  Text("Email:  " + user.email!),
                 ],
               ),
             ),
-            ElevatedButton(onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChangePasswordPage()),
-              );
-            }, child: Text("Ubah Password")),
-            ElevatedButton(
-              child: Text("Logout"),
-              onPressed: () {
+            ListTile(
+              title: Text("Ubah Password"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChangePasswordPage()),
+                );
+              },
+            ),
+            ListTile(
+              title: Text("Logout"),
+              onTap: () {
                 FirebaseAuth.instance.signOut().then((value) {
                   print("Signed Out");
                   Navigator.popUntil(context, ModalRoute.withName('/'));
@@ -82,106 +85,77 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.all(30),
           child: GridView.count(
             crossAxisCount: 2,
+            mainAxisSpacing: 20,
+            crossAxisSpacing: 20,
             children: <Widget>[
-              Card(
-                margin: EdgeInsets.all(8),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Menu()),
-                    );
-                  },
-                  splashColor: Colors.brown,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(Icons.menu_book_outlined),
-                        Text(
-                          "Menu",
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              buildMenuItem(
+                icon: Icons.menu_book_outlined,
+                title: "Menu",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Menu()),
+                  );
+                },
               ),
-              Card(
-                margin: EdgeInsets.all(8),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SalesPage()),
-                    );
-                  },
-                  splashColor: Colors.brown,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(Icons.add_business_outlined),
-                        Text(
-                          "Penjualan",
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              buildMenuItem(
+                icon: Icons.add_business_outlined,
+                title: "Penjualan",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SalesPage()),
+                  );
+                },
               ),
-              Card(
-                margin: EdgeInsets.all(8),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => InputStockPage()),
-                    );
-                  },
-                  splashColor: Colors.brown,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(Icons.add_chart_outlined),
-                        Text(
-                          "Input Stock",
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              buildMenuItem(
+                icon: Icons.add_chart_outlined,
+                title: "Input Stock",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => InputStockPage()),
+                  );
+                },
               ),
-              Card(
-                margin: EdgeInsets.all(8),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => StockOpnamePage()),
-                    );
-                  },
-                  splashColor: Colors.brown,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(Icons.warehouse),
-                        Text(
-                          "Stock Opname",
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              buildMenuItem(
+                icon: Icons.warehouse,
+                title: "Stock Opname",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StockOpnamePage()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildMenuItem({required IconData icon, required String title, required VoidCallback onTap}) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.brown,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(icon, size: 40),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

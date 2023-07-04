@@ -18,7 +18,8 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
 
   Future<void> fetchStockItems() async {
     try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('ingredient').get();
+      final QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection('ingredient').get();
 
       final List<Item> fetchedItems = snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
@@ -53,9 +54,10 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
           return ListTile(
             title: Text(item.name),
             subtitle: item.isEditing
-                ? TextField(
+                ? TextFormField(
               keyboardType: TextInputType.number,
               decoration: InputDecoration(labelText: 'New Quantity'),
+              initialValue: item.newQuantity.toString(),
               onChanged: (value) {
                 setState(() {
                   item.newQuantity = int.tryParse(value) ?? 0;
@@ -78,6 +80,7 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _saveStockOpname(context),
         child: Icon(Icons.save),
+        backgroundColor: Colors.brown,
       ),
     );
   }
@@ -167,10 +170,12 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
     }
   }
 
-  Future<void> _saveStockOpnameToFirestore(List<StockOpnameData> stockOpnameDataList) async {
+  Future<void> _saveStockOpnameToFirestore(
+      List<StockOpnameData> stockOpnameDataList) async {
     try {
       final DateTime currentDate = DateTime.now();
-      final CollectionReference stockOpnameRef = FirebaseFirestore.instance.collection('stock_opname');
+      final CollectionReference stockOpnameRef =
+      FirebaseFirestore.instance.collection('stock_opname');
 
       await stockOpnameRef.add({
         'date': currentDate,
@@ -178,14 +183,19 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
       });
 
       // Update the ingredient collection with new quantities
-      final CollectionReference ingredientRef = FirebaseFirestore.instance.collection('ingredient');
+      final CollectionReference ingredientRef =
+      FirebaseFirestore.instance.collection('ingredient');
       for (var stockOpnameData in stockOpnameDataList) {
-        final QuerySnapshot snapshot = await ingredientRef.where('name', isEqualTo: stockOpnameData.itemName).limit(1).get();
+        final QuerySnapshot snapshot = await ingredientRef
+            .where('name', isEqualTo: stockOpnameData.itemName)
+            .limit(1)
+            .get();
         final List<QueryDocumentSnapshot> documents = snapshot.docs;
 
         if (documents.isNotEmpty) {
           final DocumentSnapshot document = documents.first;
-          await ingredientRef.doc(document.id).update({'quantity': stockOpnameData.newQuantity});
+          await ingredientRef.doc(document.id)
+              .update({'quantity': stockOpnameData.newQuantity});
         }
       }
 
@@ -237,8 +247,3 @@ class StockOpnameData {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: StockOpnamePage(),
-  ));
-}

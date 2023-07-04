@@ -13,10 +13,11 @@ class signUpScreen extends StatefulWidget {
 }
 
 class _signUpScreenState extends State<signUpScreen> {
-
-  //controller
+  // Controllers
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
+
+  bool _isPasswordValid = true;
 
   @override
   Widget build(BuildContext context) {
@@ -31,58 +32,82 @@ class _signUpScreenState extends State<signUpScreen> {
         ),
       ),
       body: Container(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width,
-          height: MediaQuery
-              .of(context)
-              .size
-              .height,
-          decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [
-                hexStringToColor("834200"),
-                hexStringToColor("A4550A"),
-                hexStringToColor("B5651D")
-              ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-          child: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 120, 20, 0),
-                child: Column(
-                  children: <Widget>[
-
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    reusableTextField(
-                        "Enter Email Id", Icons.person_outline, false,
-                        _emailTextController),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    reusableTextField(
-                        "Enter Password", Icons.lock_outlined, true,
-                        _passwordTextController),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    firebaseUIButton(context, "Sign Up", () {
-                      FirebaseAuth.instance
-                          .createUserWithEmailAndPassword(
-                          email: _emailTextController.text,
-                          password: _passwordTextController.text)
-                          .then((value) {
-                        print("Created New Account");
-                        Navigator.push(context,
-                            MaterialPageRoute(
-                                builder: (context) => loginScreen()));
-                      }).onError((error, stackTrace) {
-                        print("Error ${error.toString()}");
-                      });
-                    })
-                  ],
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              hexStringToColor("834200"),
+              hexStringToColor("A4550A"),
+              hexStringToColor("B5651D"),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 120, 20, 0),
+            child: Column(
+              children: <Widget>[
+                const SizedBox(
+                  height: 20,
                 ),
-              ))),
+                reusableTextField(
+                  "Enter Email Id",
+                  Icons.person_outline,
+                  false,
+                  _emailTextController,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ReusablePasswordField(
+                  label: "Enter Password (Minimum 9 characters)",
+                  icon: Icons.lock_outlined,
+                  controller: _passwordTextController,
+                  onChanged: (value) {
+                    setState(() {
+                      _isPasswordValid = value.length >= 9;
+                    });
+                  },
+                ),
+                if (!_isPasswordValid)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Password must be at least 9 characters long.',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                const SizedBox(
+                  height: 20,
+                ),
+                firebaseUIButton(context, "Sign Up", () {
+                  if (_isPasswordValid) {
+                    FirebaseAuth.instance
+                        .createUserWithEmailAndPassword(
+                      email: _emailTextController.text,
+                      password: _passwordTextController.text,
+                    )
+                        .then((value) {
+                      print("Created New Account");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => loginScreen(),
+                        ),
+                      );
+                    }).catchError((error) {
+                      print("Error ${error.toString()}");
+                    });
+                  }
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
